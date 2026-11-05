@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Golf Swing Analyzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F0F4E8;--card:#FFFFFF;--text:#13271D;--muted:#5C7064;--accent:#0F5C3F;--accent2:#E0A81C;--border:#D3DDC6;--danger:#C8402E;--cta:#F2C230;--cta-ink:#2A2300;--soft:#E5ECD8;--turf:#0F3D2E;--turf2:#1A5A43;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0B1A14;--card:#13291F;--text:#E6EFE2;--muted:#8FA898;--accent:#5FD393;--accent2:#F0B73A;--border:#24402F;--danger:#FF7B66;--soft:#1A3427;--turf:#08261C;--turf2:#14503B}}
+:root[data-theme="dark"]{--bg:#0B1A14;--card:#13291F;--text:#E6EFE2;--muted:#8FA898;--accent:#5FD393;--accent2:#F0B73A;--border:#24402F;--danger:#FF7B66;--soft:#1A3427;--turf:#08261C;--turf2:#14503B}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.55 "IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+h1,h2,summary,.kf{font-family:Kanit,"IBM Plex Sans Thai",system-ui,sans-serif}
+.hide{display:none}
+.wrap{max-width:1080px;margin:0 auto;padding:10px 14px}
+.bar{display:flex;align-items:center;gap:10px;padding:4px 0 12px}
+.bar svg{width:30px;height:30px;color:var(--accent);flex:none}
+h1{font-size:1.15rem;font-weight:600;line-height:1;margin:0}
+h2{font-size:1.05rem;font-weight:600;margin:0 0 10px;display:flex;align-items:center}
+.no{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--turf2);color:#fff;font:600 .82rem Kanit;margin-right:9px;flex:none}
+.hint{font-size:.82rem;color:var(--muted);margin-top:8px;line-height:1.45}
+
+/* upload hero */
+.drop{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:30px 22px 26px;border-radius:26px;color:#F2F7EC;cursor:pointer;background:repeating-linear-gradient(90deg,#14503B 0 46px,#185A40 46px 92px)}
+.drop h2{display:block;font-size:2rem;font-weight:600;line-height:1.2;margin:0;position:relative}
+.drop p{margin:0;color:#CFE0D2;max-width:30ch;position:relative}
+.cta-btn{position:relative;display:inline-flex;align-items:center;gap:8px;background:var(--cta);color:var(--cta-ink);font:600 1.1rem Kanit;padding:14px 26px;border-radius:999px;margin-top:4px}
+.drop small{position:relative;color:#A9C4B2;font-size:.8rem;max-width:34ch;line-height:1.45}
+.drop .flag{position:absolute;right:-6px;bottom:-10px;width:128px;height:128px;color:#fff;opacity:.16}
+
+/* controls */
+button,select{font:500 1rem/1.2 "IBM Plex Sans Thai",system-ui,sans-serif;color:var(--text);background:var(--card);border:1.5px solid var(--border);border-radius:12px;min-height:46px;padding:8px 16px;cursor:pointer}
+button:active{transform:scale(.98)}
+button:disabled{opacity:.55}
+button.primary{background:var(--cta);color:var(--cta-ink);border-color:var(--cta);font-weight:600}
+button.big{min-height:56px;font:600 1.1rem Kanit,sans-serif;border-radius:16px}
+button.sq{width:50px;padding:0;flex:none}
+button.on{background:var(--turf2);color:#fff;border-color:var(--turf2)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.row.pager{flex-wrap:nowrap;margin:14px 0 4px}
+.chk{display:flex;gap:10px;align-items:center;margin-top:12px;color:var(--muted);font-size:.9rem}
+.chk input{width:20px;height:20px;accent-color:var(--turf2)}
+input[type=range]{flex:1;min-width:60px;accent-color:var(--turf2)}
+input.num{width:100px;min-height:46px;text-align:right;font:500 1rem Kanit,sans-serif;color:var(--text);background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:6px 10px}
+.seg{display:flex;gap:4px;padding:4px;background:var(--soft);border-radius:14px}
+.seg button{flex:1;border:0;background:transparent;min-height:42px;padding:6px 4px;font-size:.9rem;border-radius:11px}
+.seg button.on{background:var(--turf2);color:#fff}
+
+/* video dock */
+.vid{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--bg);padding:6px 14px 10px;margin:0 -14px;border-bottom:1px solid var(--border)}
+.stage{position:relative;display:flex;justify-content:center;background:#06120D;border-radius:18px;overflow:hidden;min-height:140px}
+.stage video{display:block;max-width:100%;max-height:38vh}
+.stage canvas{position:absolute;top:0;left:0;touch-action:none;cursor:crosshair}
+.ctl{display:flex;gap:8px;align-items:center;margin-top:8px}
+.ctl .big{flex:1}
+.chips{display:flex;gap:2px;padding:3px;background:var(--soft);border-radius:999px;flex:none}
+.chips button{border:0;background:transparent;min-height:36px;padding:4px 9px;font-size:.78rem;border-radius:999px}
+.chips button.on{background:var(--turf2);color:#fff}
+.time{font:500 .85rem Kanit;color:var(--muted);min-width:62px;text-align:right}
+
+/* sheets */
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;margin-bottom:14px}
+details.box{background:var(--soft);border-radius:18px;padding:2px 16px 14px;margin-bottom:14px}
+summary{list-style:none;cursor:pointer;font-weight:600;font-size:1rem;padding:14px 0;min-height:48px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";float:right;width:9px;height:9px;margin-top:6px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s}
+details[open]>summary::after{transform:rotate(-135deg)}
+.fb{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--soft);border-left:4px solid var(--accent2);font-size:.92rem;line-height:1.55}
+.fb.good{border-left-color:var(--accent)}
+details.box .fb{background:var(--card)}
+.metric{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:48px;border-bottom:1px solid var(--border)}
+.metric:last-of-type{border-bottom:0}
+.metric span{flex:1;font-size:.92rem}
+.metric b{font-family:Kanit,sans-serif;font-weight:500}
+
+/* phase timeline */
+.phase{position:relative;display:flex;align-items:center;gap:10px;min-height:54px;padding:6px 0 6px 24px}
+.phase+.phase{border-top:1px dashed var(--border)}
+.phase::before{content:"";position:absolute;left:0;top:50%;width:13px;height:13px;margin-top:-6px;border-radius:50%;border:2px solid var(--muted);background:var(--card)}
+.phase:has(.t.set)::before{background:var(--accent);border-color:var(--accent)}
+.phase>span:first-child{flex:1;font-size:.95rem}
+.phase .t{font:500 .9rem Kanit,sans-serif;color:var(--muted);min-width:56px;text-align:right}
+.phase .t.set{color:var(--accent);font-weight:600}
+.phase button{min-height:40px;padding:6px 14px;font-size:.88rem}
+
+/* tempo */
+.tbar{position:relative;display:flex;height:16px;border-radius:999px;overflow:hidden;background:var(--soft);margin:14px 0 8px}
+.tbar i{display:block;flex:0 1 0;min-width:0}
+#tbB{background:var(--turf2)}
+#tbD{background:var(--cta)}
+.tmark{position:relative;height:0}
+.tmark::after{content:"";position:absolute;left:75%;top:-28px;width:2px;height:20px;background:var(--text);opacity:.55}
+.tlab{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted)}
+.tlab b{color:var(--text)}
+.tratio{display:flex;align-items:baseline;gap:10px;margin-top:6px}
+.tratio b{font:700 2.2rem/1 Kanit,sans-serif}
+.tratio small{color:var(--muted)}
+
+/* tabs */
+.tabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;background:color-mix(in srgb,var(--card) 94%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:6px 6px env(safe-area-inset-bottom,0px)}
+.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:transparent;border-radius:12px;padding:2px 2px 4px;min-height:58px;font-size:.74rem;font-weight:500;color:var(--muted)}
+.tabs .ic{display:grid;place-items:center;width:56px;height:32px;border-radius:999px}
+.tabs svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabs button.act{color:var(--accent);font-weight:600}
+.tabs button.act .ic{background:var(--soft)}
+.pane{display:none;padding:14px 0 100px}
+.pane.act{display:block}
+
+/* guided preview overlay */
+#gv{position:absolute;inset:0;pointer-events:none;z-index:5}
+.gcall{position:absolute;top:8%;left:50%;transform:translateX(-50%);width:max-content;max-width:82%;padding:8px 12px;border-radius:12px;background:rgba(8,22,16,.88);border:1.5px solid;font-size:.8rem;line-height:1.4;color:#fff;text-align:center}
+.gcall.ok{border-color:#5FD393}.gcall.bad{border-color:#FF7B66}
+.glbl{margin-top:4px;font:600 .95rem Kanit,sans-serif}
+.gpanel{position:absolute;left:10px;right:10px;bottom:58px;background:rgba(8,22,16,.9);color:#fff;border-radius:12px;padding:8px 12px;font-size:.78rem;text-align:left}
+.gpanel #gT{font-weight:600}
+.gpanel #gD{display:none;color:#C7D6CB;margin-top:2px}
+.gbar{height:4px;background:rgba(255,255,255,.2);border-radius:4px;margin-top:8px;overflow:hidden}
+.gbar i{display:block;height:100%;width:0;background:var(--cta)}
+.gctl{position:absolute;left:10px;bottom:10px;display:flex;gap:8px;pointer-events:auto}
+.gctl button{background:rgba(0,0,0,.6);color:#fff;border-color:rgba(255,255,255,.25);min-height:40px}
+.dtl{margin-top:14px}
+.dt{display:block;font:600 1rem Kanit,sans-serif;margin-bottom:2px}
+.dl{margin-top:8px;font-size:.92rem}
+.k{display:block;color:var(--accent);font:600 .8rem Kanit,sans-serif}
+
+/* shot result */
+.hero{padding:6px 0 2px}
+.hv{display:flex;align-items:baseline;gap:8px}
+.hv .n{font:700 4.4rem/1 Kanit,sans-serif;letter-spacing:-.02em}
+.hv .u{font:500 1.15rem Kanit,sans-serif;color:var(--muted)}
+.hl{color:var(--muted);font-size:.9rem}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.pill{background:var(--soft);border-radius:999px;padding:6px 13px;font-size:.85rem;font-weight:500}
+.pill.hl2{background:var(--turf2);color:#fff}
+.shsvg{width:100%;max-width:460px;display:block;margin:14px auto 0;border-radius:18px}
+.note{font-size:.92rem}
+.empty{margin-top:12px;padding:22px 16px;border:1.5px dashed var(--border);border-radius:16px;text-align:center;color:var(--muted);font-size:.9rem}
+ul.adv{margin:4px 0 8px;padding-left:20px;font-size:.92rem}
+#adv details{border-bottom:1px solid var(--border)}
+#adv summary{font-size:.95rem;padding:12px 0}
+summary .t{margin-left:8px;color:var(--accent);font-size:.8rem;font-weight:500}
+
+@media(min-width:900px){
+  #app{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;align-items:start}
+  #app.hide{display:none}
+  .vid{top:12px;margin:0;border:1px solid var(--border);border-radius:22px;padding:12px}
+  .stage video{max-height:70vh}
+  .tabs{position:static;border:1px solid var(--border);border-radius:16px;margin-bottom:6px;padding:4px}
+  .pane{padding-bottom:30px}
+  .gpanel #gD{display:block}
+  .drop{padding:48px 40px}
+  .drop h2{font-size:2.6rem}
+}
+
+/* Mobile-first refinements */
+@media(max-width:640px){
+  .wrap{padding:8px 12px 0}
+  .bar{padding:5px 2px 10px;gap:8px}
+  h1{font-size:1.08rem}
+  .drop{min-height:250px;padding:26px 20px 24px;border-radius:22px;gap:10px}
+  .drop h2{font-size:1.8rem}
+  .drop p{font-size:.95rem;max-width:28ch}
+  .cta-btn{min-height:50px;padding:12px 24px}
+  .vid{top:0;padding:7px 10px 9px;margin:0 -12px}
+  .stage{min-height:110px;border-radius:14px}
+  .stage video{width:100%;height:auto;max-height:32svh;object-fit:contain}
+  .stage canvas{touch-action:pan-y}
+  .ctl{gap:6px;margin-top:7px}
+  .ctl button.sq{width:44px;min-width:44px;min-height:44px}
+  .ctl .big{min-height:46px;font-size:1rem}
+  .chips button{min-height:40px;padding:5px 9px}
+  input[type=range]{min-height:36px}
+  .time{min-width:58px;font-size:.8rem}
+  .card{padding:14px;border-radius:17px;margin-bottom:11px}
+  .seg{gap:3px}
+  .seg button{font-size:.82rem;min-height:44px}
+  .phase{gap:7px;padding-left:20px}
+  .phase>span:first-child{font-size:.88rem}
+  .phase button{min-height:42px;padding:6px 11px}
+  .tabs{padding:5px 4px max(6px,env(safe-area-inset-bottom,0px))}
+  .tabs button{min-height:58px;font-size:.7rem}
+  .tabs .ic{width:48px;height:30px}
+  .tabs svg{width:22px;height:22px}
+  .pane{padding-top:11px;padding-bottom:108px}
+  .hv .n{font-size:3.8rem}
+  .shsvg{margin-top:10px}
+  .row button{flex:1}
+  .metric{gap:8px}
+  .metric span{font-size:.86rem;min-width:0}
+  input.num{width:92px;min-width:82px}
+}
+@media(max-width:360px){
+  .seg button{font-size:.75rem;padding-left:2px;padding-right:2px}
+  .chips button{font-size:.72rem;padding-left:7px;padding-right:7px}
+  .tabs button{font-size:.66rem}
+  .phase>span:first-child{font-size:.82rem}
+}
+@media(orientation:landscape) and (max-height:520px){
+  .stage video{max-height:52vh}
+  .vid{position:relative}
+  .tabs{position:static}
+  .pane{padding-bottom:28px}
+}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10 28V5"/><path d="M10 5l14 5-14 6" fill="currentColor" stroke="none"/><ellipse cx="10" cy="28" rx="7" ry="2"/></svg>
+    <h1>Golf Swing Analyzer</h1>
+  </header>
+
+  <label id="drop" class="drop" for="file">
+    <svg class="flag" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M10 28V5"/><path d="M10 5l14 5-14 6" fill="currentColor" stroke="none"/><ellipse cx="10" cy="28" rx="7" ry="2"/></svg>
+    <h2>ส่งคลิปสวิง<br>ดูว่าลูกจะไปทางไหน</h2>
+    <p>AI ดูท่า บอกจุดที่ควรแก้ และคาดการณ์ระยะกับทิศทางลูก</p>
+    <span class="cta-btn">เลือกวิดีโอ</span>
+    <small>เหมาะกับมือถือ · เลือกคลิปจากเครื่องได้ทันที แนะนำถ่ายแนวนอน กล้องนิ่ง เห็นตัวเต็ม และใช้ 120fps หากมี คลิปเล่นและวิเคราะห์ในหน้านี้; เมื่อเลือกใช้ AI จะส่งเฉพาะเฟรมภาพที่จำเป็น</small>
+  </label>
+  <input id="file" type="file" accept="video/*" class="hide">
+
+  <div id="app" class="hide">
+    <div class="vid">
+      <div class="stage" id="stage">
+        <video id="v" playsinline muted preload="auto"></video>
+        <canvas id="c"></canvas>
+        <div id='gv' class='hide'><div id='gCall' class='gcall'></div><div class='gpanel'><div id='gT'></div><div id='gD'></div><div class='gbar'><i id='gB'></i></div></div><div class='gctl'><button id='gPlay'>⏸</button><button id='gNext'>⏭</button><button id='gX'>✕</button></div></div>
+      </div>
+      <div class="ctl">
+        <button id="back" class="sq" aria-label="ย้อนหนึ่งเฟรม">⏮</button>
+        <button id="play" class="big primary">▶ เล่น</button>
+        <button id="fwd" class="sq" aria-label="ไปหนึ่งเฟรม">⏭</button>
+      </div>
+      <div class="ctl">
+        <div class="chips" id="spChips"><button data-sp="0.1">0.1x</button><button data-sp="0.25">0.25x</button><button data-sp="0.5">0.5x</button><button data-sp="1">1x</button></div>
+        <input id="seek" type="range" min="0" max="1000" value="0" aria-label="ตำแหน่งวิดีโอ">
+        <span class="time" id="time">0.000s</span>
+      </div>
+      <select id="speed" class="hide"><option value="1">1x</option><option value="0.5">0.5x</option><option value="0.25" selected>0.25x</option><option value="0.1">0.1x</option></select>
+    </div>
+
+    <div class="main">
+      <nav class="tabs" id="tabs">
+        <button class="act"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7l6-3.5z"/></svg></span>วิเคราะห์</button>
+        <button><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></span>ลูก (AI)</button>
+        <button><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 8v6M7.5 10.5 12 8l4.5 2.5M12 14l-3 6M12 14l3 6"/></svg></span>ท่าทาง</button>
+        <button><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="8.5" width="18" height="7" rx="1.5" transform="rotate(-25 12 12)"/><path d="M8.5 13.5l1-.5M11.5 12.2l1-.5M14.5 10.9l1-.5"/></svg></span>วัดเอง</button>
+      </nav>
+
+      <section id="pane0" class="pane act">
+        <div class="card">
+          <h2><i class="no">1</i>เลือกไม้ที่ใช้</h2>
+          <div class="seg" id="clubSeg"><button data-club="driver">ไดรเวอร์</button><button data-club="long">เหล็กยาว</button><button data-club="mid" class="on">เหล็กกลาง</button><button data-club="short">เวดจ์</button></div>
+          <select id="club" class="hide"><option value="driver">ไดรเวอร์</option><option value="long">เหล็กยาว (3–5)</option><option value="mid" selected>เหล็กกลาง (6–8)</option><option value="short">เหล็กสั้น/เวดจ์ (9–PW)</option></select>
+          <div class="hint">เหล็กยาว 3–5 · เหล็กกลาง 6–8 · เวดจ์ 9–PW</div>
+          <h2 style="margin-top:20px"><i class="no">2</i>กดวิเคราะห์</h2>
+          <button id="gStart" class="big primary" style="width:100%">วิเคราะห์สวิง และดูทีละจุด</button>
+          <label class="chk"><input type="checkbox" id="gSlow" checked> เล่นช้าก่อนถึงแต่ละจุด</label>
+          <div class="hint" id="autoSt">กล้องต้องนิ่งระหว่างถ่าย และเห็นตัวผู้เล่นเต็มตัว</div>
+          <div id="gSlot"></div>
+        </div>
+
+        <div class="card">
+          <h2>จังหวะสวิง (Tempo)</h2>
+          <div class="tbar"><i id="tbB"></i><i id="tbD"></i></div><div class="tmark"></div>
+          <div class="tlab"><span>Backswing <b id="mBack">–</b></span><span>Downswing <b id="mDown">–</b></span></div>
+          <div class="tratio"><b id="mRatio">–</b><small>เส้นกลางบนแถบคือจังหวะ 3 : 1</small></div>
+          <div class="fb" id="fb">มาร์ค 3 จุดแรกเพื่อดูผล Tempo</div>
+        </div>
+
+        <details class="box" open>
+          <summary>จุดสำคัญของสวิง</summary>
+          <div class="phase"><span>Address / Takeaway</span><span class="t" id="t0">–</span><button data-p="0">มาร์ค</button></div>
+          <div class="phase"><span>Top (สุดแบ็กสวิง)</span><span class="t" id="t1">–</span><button data-p="1">มาร์ค</button></div>
+          <div class="phase"><span>Impact</span><span class="t" id="t2">–</span><button data-p="2">มาร์ค</button></div>
+          <div class="phase"><span>Finish</span><span class="t" id="t3">–</span><button data-p="3">มาร์ค</button></div>
+          <div class="row"><button id="auto">หาจังหวะอัตโนมัติ</button><button id="resetP">รีเซ็ต</button></div>
+          <div class="hint">ไม่ตรงเฟรม? เลื่อนวิดีโอไปเฟรมที่ถูก แล้วกดมาร์คทับได้</div>
+        </details>
+      </section>
+
+      <section id="pane1" class="pane">
+        <div class="card">
+          <h2>AI คาดการณ์ระยะและทิศทางลูก</h2>
+          <button id="shVid" class="big primary" style="width:100%">ให้ AI ดูวิดีโอแล้วคาดการณ์</button>
+          <div class="hint" id="shSt">AI ดูภาพจากวิดีโอ ประเมินหน้าไม้และแนวสวิง แล้วคำนวณวิถีลูก</div>
+          <div class="row pager"><button id="shPrev" class="sq" aria-label="ชอตก่อนหน้า">◀</button><b id="shNo" class="kf" style="flex:1;text-align:center;font-weight:500">ยังไม่มีชอต</b><button id="shNext" class="sq" aria-label="ชอตถัดไป">▶</button><button id="shDel" class="sq" aria-label="ลบชอตนี้">🗑</button></div>
+          <div id="shView"></div>
+        </div>
+        <details class="box">
+          <summary>ปรับตัวเลขเอง แล้วคำนวณใหม่</summary>
+          <div class="metric"><span>สปีดหัวไม้ (mph)</span><input class="num" id="shSp" type="number" inputmode="decimal" placeholder="อัตโนมัติ"></div>
+          <div class="metric"><span>Face angle (° บวก = เปิดขวา)</span><input class="num" id="face" type="number" inputmode="decimal" step=".5" value="0"></div>
+          <div class="metric"><span>Club path (° บวก = in-to-out)</span><input class="num" id="path" type="number" inputmode="decimal" step=".5" value="0"></div>
+          <div class="metric"><span>Attack angle (° บวก = ตีขึ้น)</span><input class="num" id="aoa" type="number" inputmode="decimal" step=".5" placeholder="-"></div>
+          <div class="fb" id="ballRes"></div>
+          <button id="shGo" class="big" style="width:100%;margin-top:12px">คำนวณลูกจากตัวเลขนี้</button>
+          <div class="hint">สำหรับมือขวา ถ้ามีค่าจาก launch monitor ใส่ได้เลย</div>
+        </details>
+        <details class="box">
+          <summary>วัดสปีดหัวไม้เอง</summary>
+          <div class="hint" style="margin-top:0">1) กด ตั้งสเกล แล้วแตะปลายกริปและหัวไม้ 2) เดินเฟรมไปก่อน impact กด จุดหัวไม้ แล้วแตะหัวไม้ 3) เดินไป 1–2 เฟรม แล้วแตะหัวไม้อีกครั้ง</div>
+          <div class="row"><button data-t="scale">ตั้งสเกล</button><button data-t="head">จุดหัวไม้</button></div>
+          <div id="spRes" class="fb"></div>
+          <div class="hint">แม่นขึ้นถ้าถ่ายสโลว์โม 120fps ขึ้นไป</div>
+        </details>
+      </section>
+
+      <section id="pane2" class="pane">
+        <div class="card">
+          <h2>ท่าทางร่างกาย</h2>
+          <div class="hint" style="margin:0 0 6px">ใช้แท็บ วัดเอง ลากเส้นไหล่ถึงสะโพก แล้วนำมุมมากรอก (ไม่กรอกก็ได้)</div>
+          <div class="metric"><span>Spine ตอน Address (°)</span><input class="num" id="sa" type="number" inputmode="decimal" placeholder="-"></div>
+          <div class="metric"><span>Spine ตอน Impact (°)</span><input class="num" id="si" type="number" inputmode="decimal" placeholder="-"></div>
+          <div class="metric"><span>หมุนไหล่ที่ Top (°)</span><input class="num" id="sh" type="number" inputmode="decimal" placeholder="-"></div>
+          <div class="metric"><span>หมุนสะโพกที่ Top (°)</span><input class="num" id="hp" type="number" inputmode="decimal" placeholder="-"></div>
+          <div class="fb" id="postRes">กรอกค่าเพื่อดูคำแนะนำ</div>
+        </div>
+        <div class="card"><h2>คำแนะนำแต่ละท่า</h2><div id="adv"></div></div>
+      </section>
+
+      <section id="pane3" class="pane">
+        <div class="card">
+          <h2>เครื่องมือวัดบนวิดีโอ</h2>
+          <div class="row" style="margin-top:0"><button data-t="line">เส้น</button><button data-t="angle">มุม 3 จุด</button><button data-t="plumb">เส้นดิ่ง</button></div>
+          <div class="row"><button id="undo">ย้อนกลับ</button><button id="clear">ล้างทั้งหมด</button></div>
+          <div class="hint" id="toolHint">เลือกเครื่องมือ แล้วแตะบนวิดีโอด้านบน</div>
+          <h2 style="margin-top:18px">ค่าที่วัดไว้</h2>
+          <div id="angList" class="hint" style="margin-top:0">ยังไม่มีการวัด</div>
+        </div>
+        <details class="box">
+          <summary>ตั้งค่า</summary>
+          <div class="metric"><span>FPS ของวิดีโอ</span><select id="fps"><option>24</option><option selected>30</option><option>60</option><option>120</option><option>240</option></select></div>
+          <div class="row"><button id="newVid">เปลี่ยนวิดีโอ</button></div>
+        </details>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const v=$('v'),c=$('c'),ctx=c.getContext('2d');
+  let heads=[],scale=null,tool=null,pts=[],shapes=[],hover=null,marks=[null,null,null,null],url=null;
+
+  function load(f){
+    if(!f)return;
+    if(url)URL.revokeObjectURL(url);
+    url=URL.createObjectURL(f);
+    v.src=url;
+    $('drop').classList.add('hide');$('app').classList.remove('hide');
+    shapes=[];pts=[];marks=[null,null,null,null];refreshMarks();refreshAng();
+  }
+  $('file').onchange=e=>load(e.target.files[0]);
+  const drop=$('drop');
+  ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault()}));
+  drop.addEventListener('drop',e=>{e.preventDefault();load(e.dataTransfer.files[0])});
+  $('newVid').onclick=()=>{v.pause();$('app').classList.add('hide');drop.classList.remove('hide');$('file').value=''};
+
+  function fit(){
+    const r=v.getBoundingClientRect();
+    c.width=r.width;c.height=r.height;
+    c.style.left=(v.offsetLeft)+'px';
+    c.style.width=r.width+'px';c.style.height=r.height+'px';
+    draw();
+  }
+  v.addEventListener('loadedmetadata',()=>{v.playbackRate=+$('speed').value;setTimeout(fit,50)});
+  v.addEventListener('loadeddata',fit);
+  window.addEventListener('resize',fit);
+
+  const fps=()=>+$('fps').value;
+  function updTime(){
+    $('time').textContent=v.currentTime.toFixed(3)+'s';
+    if(v.duration)$('seek').value=Math.round(v.currentTime/v.duration*1000);
+  }
+  v.addEventListener('timeupdate',updTime);
+  v.addEventListener('seeked',updTime);
+  $('seek').oninput=e=>{v.pause();setPlay();v.currentTime=e.target.value/1000*v.duration};
+  function setPlay(){$('play').textContent=v.paused?'▶ เล่น':'⏸ หยุด'}
+  $('play').onclick=()=>{v.paused?v.play():v.pause();setPlay()};
+  v.addEventListener('pause',setPlay);v.addEventListener('play',setPlay);
+  v.addEventListener('ended',setPlay);
+  $('speed').onchange=e=>v.playbackRate=+e.target.value;
+  function step(d){v.pause();v.currentTime=Math.max(0,Math.min(v.duration,v.currentTime+d/fps()))}
+  $('back').onclick=()=>step(-1);$('fwd').onclick=()=>step(1);
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='SELECT')return;
+    if(e.key==='ArrowLeft')step(-1);
+    else if(e.key==='ArrowRight')step(1);
+    else if(e.key===' '){e.preventDefault();$('play').click()}
+  });
+
+  // tools
+  const hints={line:'แตะ 2 จุดเพื่อลากเส้น (แสดงองศาจากแนวดิ่ง)',angle:'แตะ 3 จุด: จุดแรก → จุดยอด → จุดที่สาม',plumb:'แตะ 1 จุดเพื่อวางเส้นดิ่งและเส้นระดับ',scale:'แตะปลายกริป แล้วแตะหัวไม้ (ไม้ควรตั้งฉากกับกล้อง)',head:'แตะหัวไม้ก่อน impact แล้วเดินไป 1–2 เฟรมและแตะอีกครั้ง'};
+  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{
+    tool=tool===b.dataset.t?null:b.dataset.t;pts=[];
+    document.querySelectorAll('[data-t]').forEach(x=>x.classList.toggle('on',x.dataset.t===tool));
+    $('toolHint').textContent=tool?hints[tool]:'เลือกเครื่องมือแล้วแตะบนวีดีโอ';
+    draw();
+  });
+  $('undo').onclick=()=>{if(pts.length)pts.pop();else shapes.pop();draw();refreshAng()};
+  $('clear').onclick=()=>{shapes=[];pts=[];heads=[];scale=null;draw();refreshAng();speedCalc()};
+
+  function pos(e){const r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+  c.addEventListener('pointerdown',e=>{
+    if(!tool)return;
+    const p=pos(e);pts.push(p);
+    if(tool==='plumb'){shapes.push({t:'plumb',p:pts[0]});pts=[]}
+    else if(tool==='head'){heads.push({p:pts[0],t:v.currentTime});if(heads.length>2)heads.shift();pts=[];speedCalc()}
+    else if(tool==='scale'&&pts.length===2){scale={a:pts[0],b:pts[1]};pts=[];speedCalc()}
+    else if(tool==='line'&&pts.length===2){shapes.push({t:'line',a:pts[0],b:pts[1]});pts=[]}
+    else if(tool==='angle'&&pts.length===3){shapes.push({t:'angle',a:pts[0],b:pts[1],c:pts[2]});pts=[]}
+    draw();refreshAng();
+  });
+  c.addEventListener('pointermove',e=>{hover=pos(e);if(pts.length)draw()});
+
+  const deg=r=>r*180/Math.PI;
+  function lineAng(a,b){return Math.abs(deg(Math.atan2(b.x-a.x,b.y-a.y)))%180}
+  function vertAng(a,b){let d=deg(Math.atan2(b.x-a.x,-(b.y-a.y)));return Math.abs(d)>90?180-Math.abs(d):Math.abs(d)}
+  function triAng(a,b,cc){
+    const v1={x:a.x-b.x,y:a.y-b.y},v2={x:cc.x-b.x,y:cc.y-b.y};
+    const d=v1.x*v2.x+v1.y*v2.y,m=Math.hypot(v1.x,v1.y)*Math.hypot(v2.x,v2.y);
+    return m?deg(Math.acos(Math.max(-1,Math.min(1,d/m)))):0;
+  }
+  function dot(p,col){ctx.beginPath();ctx.arc(p.x,p.y,5,0,7);ctx.fillStyle=col;ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=1;ctx.stroke()}
+  function label(t,x,y){
+    ctx.font='bold 14px system-ui';const w=ctx.measureText(t).width;
+    ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(x-4,y-15,w+8,20);
+    ctx.fillStyle='#fff';ctx.fillText(t,x,y);
+  }
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.lineWidth=2.5;
+    shapes.forEach(s=>{
+      if(s.t==='line'){
+        ctx.strokeStyle='#3ecf7a';ctx.beginPath();ctx.moveTo(s.a.x,s.a.y);ctx.lineTo(s.b.x,s.b.y);ctx.stroke();
+        dot(s.a,'#3ecf7a');dot(s.b,'#3ecf7a');
+        label(vertAng(s.a,s.b).toFixed(1)+'° จากแนวดิ่ง',(s.a.x+s.b.x)/2+8,(s.a.y+s.b.y)/2);
+      }else if(s.t==='angle'){
+        ctx.strokeStyle='#f0b73a';ctx.beginPath();ctx.moveTo(s.a.x,s.a.y);ctx.lineTo(s.b.x,s.b.y);ctx.lineTo(s.c.x,s.c.y);ctx.stroke();
+        dot(s.a,'#f0b73a');dot(s.b,'#ff8a3d');dot(s.c,'#f0b73a');
+        label(triAng(s.a,s.b,s.c).toFixed(1)+'°',s.b.x+10,s.b.y-8);
+      }else if(s.t==='plumb'){
+        ctx.save();ctx.setLineDash([8,6]);ctx.strokeStyle='rgba(80,180,255,.9)';
+        ctx.beginPath();ctx.moveTo(s.p.x,0);ctx.lineTo(s.p.x,c.height);ctx.moveTo(0,s.p.y);ctx.lineTo(c.width,s.p.y);ctx.stroke();ctx.restore();
+        dot(s.p,'#50b4ff');
+      }
+    });
+    if(scale){ctx.save();ctx.setLineDash([6,4]);ctx.strokeStyle='#50e0ff';ctx.beginPath();ctx.moveTo(scale.a.x,scale.a.y);ctx.lineTo(scale.b.x,scale.b.y);ctx.stroke();ctx.restore();dot(scale.a,'#50e0ff');dot(scale.b,'#50e0ff');label('สเกล = ความยาวไม้',scale.b.x+8,scale.b.y)}
+    heads.forEach((h,i)=>{dot(h.p,'#ff5a5a');label('H'+(i+1),h.p.x+8,h.p.y-6)});
+    // in-progress
+    if(pts.length){
+      ctx.strokeStyle='rgba(255,255,255,.8)';ctx.setLineDash([4,4]);
+      ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+      pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+      if(hover)ctx.lineTo(hover.x,hover.y);ctx.stroke();ctx.setLineDash([]);
+      pts.forEach(p=>dot(p,'#fff'));
+    }
+  }
+  function refreshAng(){
+    const el=$('angList');
+    const items=shapes.filter(s=>s.t!=='plumb').map((s,i)=>
+      s.t==='line'?`เส้น ${i+1}: ${vertAng(s.a,s.b).toFixed(1)}° จากแนวดิ่ง`:`มุม ${i+1}: ${triAng(s.a,s.b,s.c).toFixed(1)}°`);
+    el.innerHTML=items.length?items.map(t=>`<div class="metric"><span>${t.split(':')[0]}</span><b>${t.split(':')[1]}</b></div>`).join(''):'ยังไม่มีการวัด';
+  }
+
+  const CI={driver:{n:'ไดรเวอร์',len:45,sm:1.45,cf:1.55,k:.85,sp:[28,38],ref:93,ds:200},long:{n:'เหล็กยาว',len:38.5,sm:1.4,cf:1.43,k:.75,sp:[30,40],ref:83,ds:170},mid:{n:'เหล็กกลาง',len:37,sm:1.35,cf:1.48,k:.75,sp:[32,42],ref:76,ds:150},short:{n:'เหล็กสั้น/เวดจ์',len:35.5,sm:1.3,cf:1.38,k:.75,sp:[34,44],ref:68,ds:120}};
+  let carry=null;
+  const gc=()=>CI[$('club').value];
+  function speedCalc(){
+    const ci=gc(),el=$('spRes');carry=null;
+    if(!scale||heads.length<2){el.textContent='ตั้งสเกล: '+(scale?'✓':'–')+' · จุดหัวไม้: '+heads.length+'/2';ballCalc();return}
+    const px=Math.hypot(scale.b.x-scale.a.x,scale.b.y-scale.a.y),dt=Math.abs(heads[1].t-heads[0].t);
+    if(!px||!dt){el.textContent='จุดหัวไม้ต้องอยู่คนละเฟรม และสเกลต้องไม่เป็นศูนย์';ballCalc();return}
+    const m=Math.hypot(heads[1].p.x-heads[0].p.x,heads[1].p.y-heads[0].p.y)/px*ci.len*0.0254;
+    const mph=m/dt*2.23694,ball=mph*ci.sm;carry=ball*ci.cf;$('shSp').value=mph.toFixed(0);
+    const diff=(mph/ci.ref-1)*100;
+    const note=(mph>150||mph<25)?' ⚠ ค่าผิดปกติ ตรวจจุดที่แตะและสเกลอีกครั้ง':'';
+    el.innerHTML=`สปีดหัวไม้ ≈ <b>${mph.toFixed(0)} mph</b> (${(mph*1.609).toFixed(0)} km/h)<br>Ball speed ≈ ${ball.toFixed(0)} mph · Carry ≈ ${carry.toFixed(0)} หลา<br>เทียบค่าเฉลี่ยสมัครเล่นชาย (${ci.ref} mph): ${diff>=0?'+':''}${diff.toFixed(0)}%${note}`;
+    ballCalc();
+  }
+  function ballCalc(){
+    const ci=gc(),f=+$('face').value||0,p=+$('path').value||0;
+    const s=ci.k*f+(1-ci.k)*p,cv=f-p,d=carry||ci.ds,off=d*Math.sin(s*Math.PI/180);
+    const start=Math.abs(s)<1?'เริ่มตรงเป้า':`เริ่ม${s>0?'ไปทางขวา':'ไปทางซ้าย'}ของเป้า ${Math.abs(s).toFixed(1)}° (~${Math.abs(off).toFixed(0)} หลา ที่ระยะ ${Math.round(d)} หลา)`;
+    const mag=Math.abs(cv)>=5?'มาก':Math.abs(cv)>=3?'ปานกลาง':'เล็กน้อย';
+    const curve=Math.abs(cv)<1.5?'วิถีตรง ไม่โค้งชัด':(cv>0?'โค้งขวา (fade/slice) ':'โค้งซ้าย (draw/hook) ')+mag;
+    let tip;
+    if(cv>=3)tip='หน้าไม้เปิดเมื่อเทียบกับ path: เช็กกริป (ไม่อ่อนเกินไป) ปล่อยข้อมือให้หน้าไม้ปิดผ่าน impact และดูว่าตีออกนอกเข้าในมากไปหรือไม่';
+    else if(cv<=-3)tip='หน้าไม้ปิดเมื่อเทียบกับ path: ลดการหมุนข้อมือก่อน impact กริปให้เป็นกลางขึ้น และรักษาหน้าไม้ให้นิ่งผ่านบอล';
+    else if(Math.abs(s)>3)tip='ทิศเริ่มต้นเบี่ยงจากเป้า: ตรวจการเล็ง ตำแหน่งบอล และแนวสแตนซ์ก่อน';
+    else tip='หน้าไม้กับ path สัมพันธ์กันดี';
+    $('ballRes').innerHTML=`${start}<br>${curve}<br><span style='color:var(--muted)'>${tip}</span>`;
+  }
+  function postCalc(){
+    const ci=gc(),g=id=>$(id).value===''?null:+$(id).value,a=g('sa'),i=g('si'),sh=g('sh'),hp=g('hp'),o=[];
+    if(a!=null){if(a<ci.sp[0])o.push(`Address ก้มตัวน้อยไป (${a}°) ช่วงที่แนะนำสำหรับ${ci.n} ${ci.sp[0]}–${ci.sp[1]}° ลองงอสะโพกเพิ่มและรักษาหลังให้ตรง`);else if(a>ci.sp[1])o.push(`Address ก้มตัวมากไป (${a}°) ช่วงที่แนะนำ ${ci.sp[0]}–${ci.sp[1]}° ลองยืดตัวขึ้นเล็กน้อยและงอเข่านิดหน่อย`);else o.push(`Spine ตอน Address อยู่ในช่วงที่แนะนำ (${ci.sp[0]}–${ci.sp[1]}°)`)}
+    if(a!=null&&i!=null){const dd=i-a;if(dd<-5)o.push(`ตัวยืดขึ้น ${Math.abs(dd).toFixed(0)}° ระหว่างสวิง (early extension) ลองรักษาสะโพกให้ใกล้เส้นเดิมและรักษามุมหลัง`);else if(dd>5)o.push(`ตัวก้มลงเพิ่ม ${dd.toFixed(0)}° ตอน Impact อาจทำให้ตีหนา ลองรักษาความสูงของลำตัว`);else o.push('มุมหลังคงที่ดีระหว่างสวิง')}
+    if(sh!=null){if(sh<80)o.push(`หมุนไหล่น้อย (${sh}°) ช่วงที่แนะนำราว 80–100° ลองเพิ่มความยืดหยุ่นช่วงอกและปล่อยให้ไหล่ซ้ายหมุนใต้คาง`);else if(sh>105)o.push(`หมุนไหล่มาก (${sh}°) ระวังสวิงยาวเกินจนควบคุมยาก`);else o.push('การหมุนไหล่อยู่ในช่วงที่ดี')}
+    if(sh!=null&&hp!=null){const x=sh-hp;o.push(`X-factor ≈ ${x.toFixed(0)}° `+(x<30?'(ต่ำ) ลองจำกัดการหมุนสะโพกให้น้อยลงเมื่อเทียบกับไหล่':x>55?'(สูงมาก) ระวังความเครียดของหลังส่วนล่าง':'(อยู่ในช่วงดี ราว 35–55°)'))}
+    $('postRes').innerHTML=o.length?o.join('<br>'):'กรอกค่าเพื่อดูคำแนะนำ';
+  }
+  const PH=[
+    ['1. Address (ท่าเตรียม)','ยืนกว้างประมาณไหล่ งอเข่าเล็กน้อย (~15–25°) ก้มจากสะโพกให้หลังตรง แขนห้อยธรรมชาติใต้ไหล่ กริปไม่แน่นเกินไป','บอลตรงส้นเท้าซ้าย · ตั้งทีให้ครึ่งลูกสูงกว่าหัวไม้ · น้ำหนัก ~55% เท้าขวา · ไหล่ขวาต่ำกว่าเล็กน้อย (spine tilt ห่างเป้า ~5–8°)','บอลกลางสแตนซ์ (เหล็กยาวขยับไปหน้าเล็กน้อย เวดจ์ถอยหลังเล็กน้อย) · น้ำหนัก ~50:50 · มือนำหัวไม้เล็กน้อย'],
+    ['2. Takeaway (เริ่มสวิง)','ช่วง 30–45 ซม. แรก ให้แขน ไหล่ และลำตัวเคลื่อนพร้อมกันเป็นชิ้นเดียว อย่าใช้มือยกไม้ และให้หัวนิ่ง','ลากหัวไม้ให้กว้างและต่ำไปตามพื้น ช่วยให้ตีขึ้นได้','ให้หัวไม้ตามแนวเข้าด้านในเล็กน้อยตามธรรมชาติ ไม่ยกไม้ชันเกินไป'],
+    ['3. Top (สุดแบ็กสวิง)','หมุนไหล่ราว 80–100° สะโพก ~35–55° แขนซ้ายตรงพอสมควร มุมหลังไม่เปลี่ยน น้ำหนักอยู่ในเท้าขวาโดยไม่เอนตัวไปด้านหลัง (ไม่ sway)','ส่วนใหญ่ backswing เต็มได้ แต่ไม่ต้องข้ามแนวขนาน ถ้าเสียการควบคุม','สั้นลงเล็กน้อยได้ เน้นความแม่นยำและจังหวะ มากกว่าระยะ'],
+    ['4. Downswing / Impact','เริ่มจากสะโพกและขา ให้ลำตัวนำแขน รักษามุมหลังไม่ยืนตัวขึ้น หัวอยู่หลังบอลเล็กน้อย','ตีขึ้นเล็กน้อย (angle of attack +2 ถึง +5°) น้ำหนักเลื่อนไปซ้ายแต่หัวยังอยู่หลังบอล','ตีลงเล็กน้อย (−2 ถึง −6°) มือนำหัวไม้ เกิด divot หน้าบอล ไม่ต้องช้อนบอล'],
+    ['5. Finish','หมุนตัวเต็ม หน้าอกหันเข้าเป้า น้ำหนัก ~90% เท้าซ้าย ยืนทรงตัวค้างได้ ~3 วินาที','ฟินิชสูง ไม้ข้ามไหล่ ทรงตัวสวย','ฟินิชค้างได้เตี้ยกว่าเล็กน้อย เน้นทรงตัวและหมุนเต็ม']
+  ];
+  function advice(){
+    const dr=$('club').value==='driver',m=marks;
+    const f=(a,b,l)=>m[a]!=null&&m[b]!=null&&m[b]>m[a]?` ⏱ ${l} ${(m[b]-m[a]).toFixed(2)}s`:'';
+    const tm=['',f(0,1,'Backswing'),f(0,1,'Backswing'),f(1,2,'Downswing'),f(2,3,'Impact→Finish')];
+    $('adv').innerHTML=PH.map((p,i)=>`<details><summary><b>${p[0]}</b>${tm[i]?'<span class=t>'+tm[i]+'</span>':''}</summary><ul class=adv><li>${p[1]}</li><li><b>${dr?'ไดรเวอร์':'เหล็ก'}:</b> ${dr?p[2]:p[3]}</li></ul></details>`).join('');
+  }
+  $('club').onchange=()=>{speedCalc();postCalc();advice()};
+  ['face','path'].forEach(id=>$(id).oninput=ballCalc);
+  ['sa','si','sh','hp'].forEach(id=>$(id).oninput=postCalc);
+  speedCalc();postCalc();advice();
+
+  /* guided checkpoint preview */
+  const G={i:-1,list:[],tm:null,paused:false,tok:0};
+  function cps(){
+    const ci=gc(),dr=$('club').value==='driver',[a,t,i,f]=marks,lp=(x,y,k)=>x+(y-x)*k;
+    const g=id=>$(id).value===''?null:+$(id).value,sa=g('sa'),si=g('si'),sh=g('sh');
+    const ratio=(a!=null&&t!=null&&i!=null&&t>a&&i>t)?(t-a)/(i-t):null;
+    const saOk=sa==null||(sa>=ci.sp[0]&&sa<=ci.sp[1]);
+    const shOk=sh==null||(sh>=80&&sh<=105);
+    const rOk=ratio==null||(ratio>=2.4&&ratio<=3.6);
+    const imOk=sa==null||si==null||Math.abs(si-sa)<=5;
+    return [
+      {t:a,title:'ตั้งท่า — ท่าทางและช่วงล่าง (ด้านข้าง)',d:'จัดท่าแบบนี้ทุกครั้ง ให้เหมือนเดิมทุกลูก',ok:saOk,msg:saOk?'การโน้มตัวไปข้างหน้าพอดีแล้ว':'ปรับการโน้มตัว ช่วงที่แนะนำ '+ci.sp[0]+'–'+ci.sp[1]+'°',lbl:sa!=null?sa+'°':''},
+      {t:(a!=null&&t!=null)?lp(a,t,.35):null,title:'เทกอะเวย์ — ระนาบสวิง (แบ็กสวิง)',d:'ให้แขน ไหล่ และลำตัวเคลื่อนไปพร้อมกัน ไม่ใช้มือยกไม้',ok:true,msg:'ดึงไม้ไปด้านหลังให้ต่อเนื่อง หัวนิ่ง',lbl:''},
+      {t:t,title:'ตำแหน่งมือ — ความลึก (ท็อป)',d:'หมุนตัวต่อเพื่อให้มือไปอยู่ด้านหลังและอยู่ในแนวเดียวกับสันเท้า',ok:shOk,msg:shOk?(sh==null?'ที่จุดสูงสุด ให้มืออยู่เหนือสันเท้า':'การหมุนไหล่อยู่ในช่วงที่ดี'):'ปรับการหมุนไหล่ ช่วงที่แนะนำ 80–100°',lbl:sh!=null?sh+'°':''},
+      {t:(t!=null&&i!=null)?lp(t,i,.6):null,title:'การเปลี่ยนทิศ — จังหวะ (ดาวน์สวิง)',d:'เริ่มตีลงจากสะโพกและขา ให้ลำตัวนำแขน',ok:rOk,msg:ratio==null?'เริ่มดาวน์สวิงด้วยสะโพก':rOk?'จังหวะ backswing:downswing สมดุล':ratio<2.4?'จังหวะเร่งเกินไป ลองนุ่มนวลขึ้นช่วงแบ็กสวิง':'แบ็กสวิงช้าไป ลองกระชับจังหวะ',lbl:ratio!=null?ratio.toFixed(1)+' : 1':''},
+      {t:i,title:'Impact — ความสูงลำตัว',d:dr?'ตีขึ้นเล็กน้อย หัวอยู่หลังบอล น้ำหนักเลื่อนไปซ้าย':'ตีลงเล็กน้อย มือนำหัวไม้ ให้เกิด divot หน้าบอล',ok:imOk,msg:imOk?'รักษามุมหลังได้ดี':'ตัวเปลี่ยนมุมมากระหว่างสวิง ลองรักษาระดับลำตัวให้คงที่',lbl:si!=null?si+'°':''},
+      {t:f,title:'ฟินิช — สมดุล',d:'น้ำหนักเกือบทั้งหมดอยู่เท้าซ้าย หน้าอกหันเข้าเป้า',ok:true,msg:'ทรงตัวค้างไว้ให้ได้ ~3 วินาที',lbl:''}
+    ].map((c,n)=>({...c,n})).filter(c=>c.t!=null).sort((x,y)=>x.t-y.t);
+  }
+  function gTimer(k){
+    const bar=$('gB');bar.style.transition='none';bar.style.width='0';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.transition='width 4s linear';bar.style.width='100%'}));
+    clearTimeout(G.tm);G.tm=setTimeout(()=>gShow(k+1),4000);
+  }
+  function gShow(k){
+    if(k>=G.list.length){gStop();return}
+    G.i=k;const tok=++G.tok;clearTimeout(G.tm);
+    gApproach(G.list[k],k>0?G.list[k-1].t:null,tok).then(()=>{if(tok===G.tok)gReveal(k)});
+  }
+  function gReveal(k){
+    const c=G.list[k];$('gCall').style.visibility='visible';
+    const el=$('gCall');el.className='gcall '+(c.ok?'ok':'bad');
+    el.innerHTML=(c.ok?'✓ ':'⚠ ')+c.msg+(c.lbl?'<div class=glbl>'+c.lbl+'</div>':'');
+    $('gT').textContent=(k+1)+'/'+G.list.length+' · '+c.title;$('gD').textContent=c.d;gDetail(c);
+    if(G.paused){clearTimeout(G.tm);const b=$('gB');b.style.transition='none';b.style.width='0'}else gTimer(k);
+  }
+  function gStop(){clearTimeout(G.tm);G.tok++;G.i=-1;v.pause();v.playbackRate=+$('speed').value;$('gCall').style.visibility='visible';$('gv').classList.add('hide');$('gDetail').classList.add('hide')}
+  async function gStart(){if(window.showTab)showTab(0);
+    if(marks.some(m=>m==null))await autoAnalyze();
+    G.list=cps();
+    if(!G.list.length){$('autoSt').textContent='ยังไม่มีจังหวะให้พรีวิว ลองมาร์คเองอย่างน้อย 1 จุด';return}
+    G.paused=false;$('gPlay').textContent='⏸';$('gv').classList.remove('hide');gShow(0);
+  }
+  $('gStart').onclick=gStart;
+  $('gNext').onclick=()=>gShow(G.i+1);
+  $('gX').onclick=gStop;
+  $('gPlay').onclick=()=>{G.paused=!G.paused;$('gPlay').textContent=G.paused?'▶':'⏸';if(G.paused){clearTimeout(G.tm);const b=$('gB');b.style.transition='none';b.style.width=getComputedStyle(b).width}else gTimer(G.i)};
+
+  /* detailed advice + slow-mo approach */
+  const DET=[
+    {l:'ดูตั้งแต่เท้าถึงศีรษะ: เท้ากว้างประมาณไหล่ เข่างอเล็กน้อย หลังตรงโน้มมาจากสะโพก แขนห้อยลงใต้ไหล่แบบผ่อนคลาย',w:'ท่าตั้งตัวกำหนดมุมหลังและระยะห่างจากบอลตลอดสวิง ถ้าตั้งผิดจะต้องชดเชยกลางสวิง ทำให้ตีไม่สม่ำเสมอ',f:['ยืนให้ไหล่ขวาต่ำกว่าไหล่ซ้ายเล็กน้อย บอลอยู่ตรงส้นเท้าซ้าย แล้วถ่ายรูปท่าตั้งเทียบกันทุกครั้งก่อนตี','ยืนให้น้ำหนักเท่ากันสองเท้า บอลอยู่กลางสแตนซ์ มือนำหัวไม้เล็กน้อย แล้วถ่ายรูปท่าตั้งเทียบกันทุกครั้ง']},
+    {l:'ดูว่าแขน ไหล่ และลำตัวเคลื่อนไปพร้อมกันหรือไม่ และหัวไม้ลากต่ำไปด้านหลังตามแนวพื้น ไม่ม้วนเข้าในหรือยกชันเร็วเกินไป',w:'ช่วงเริ่มต้นกำหนดระนาบสวิงทั้งหมด ถ้าเริ่มผิด จะต้องแก้ที่ท็อปและตอนตีลง ซึ่งทำได้ยาก',f:['วางไม้อีกอันขนานแนวเป้าบนพื้น แล้วลากหัวไม้ให้กว้างและต่ำตามพื้น 30–45 ซม. แรก','ให้หน้าอกหมุนพร้อมแขน หัวไม้ตามหลังมือเล็กน้อย อย่ายกมือขึ้นก่อน']},
+    {l:'ดูว่าหลังหันเข้าหาเป้า แขนซ้ายตรงพอสมควร มืออยู่สูงเหนือไหล่ และศีรษะอยู่ที่เดิมไม่เอนไปด้านหลังมาก',w:'ท็อปคือจุดสะสมแรง การหมุนไหล่ที่ดีช่วยให้ตีได้เร็วโดยไม่ต้องออกแรงแขนมาก',f:['ถ้าหมุนน้อย ให้ยืดอกแล้วหมุนไหล่ซ้ายไปใต้คาง ถ้าหมุนเกิน ให้หยุดเมื่อแขนซ้ายเริ่มงอ','ใช้ท็อปสั้นลงเล็กน้อยแต่คงจังหวะ หมุนไหล่ให้เต็มก่อนยกแขนเพิ่ม']},
+    {l:'ดูว่าสะโพกหมุนไปทางเป้าก่อน แล้วลำตัว แขน และไม้ตามมา มือลงใกล้ลำตัว ไม่ผลักออกนอก',w:'ลำดับ สะโพก → ลำตัว → แขน → หัวไม้ ทำให้ความเร็วเพิ่มขึ้นเป็นทอดๆ และตีโดนกลางหน้าไม้ได้ง่ายขึ้น',f:['ซ้อมหยุดนิ่งที่ท็อปครึ่งวินาที แล้วเริ่มตีลงด้วยการหมุนสะโพกซ้าย','ซ้อมตีครึ่งสวิง ให้รู้สึกว่าสะโพกนำ มือตามลงมาเส้นทางเดิม']},
+    {l:'ดูว่าสะโพกเปิดไปทางเป้า ศีรษะอยู่หลังบอล หลังไม่ยืดตัวขึ้น แขนซ้ายตรง และหน้าไม้หันเข้าเป้า',w:'Impact กำหนดทิศทาง วิถี และระยะของลูกทั้งหมด',f:['ให้หัวไม้ผ่านบอลขึ้นเล็กน้อย พร้อมรักษากระดูกสันหลังให้สูงเท่าเดิม','ให้มือนำหัวไม้ ตีลูกก่อนพื้น ให้เกิด divot หลังบอล']},
+    {l:'ดูว่ายืนทรงตัวได้นิ่ง น้ำหนักอยู่เท้าซ้าย หน้าอกหันเข้าเป้า และเท้าขวาเขย่งบนปลายเท้า',w:'ฟินิชที่สมดุลบอกว่าส่งแรงผ่านบอลได้เต็มที่และควบคุมการหมุนได้',f:['ถ้าเสียหลัก ให้ลดความเร็วสวิงลงประมาณ 20% แล้วฝึกค้างฟินิชให้ได้ 3 วินาที','ค้างท่าให้นิ่งก่อนเดินไปเก็บบอล ฝึกให้สม่ำเสมอ ถ้ามีอาการเจ็บควรปรึกษาโปร']}
+  ];
+  $('gSlot').innerHTML=`<div id=gDetail class='fb hide'></div>`;
+  function gDetail(c){
+    const d=DET[c.n],dr=$('club').value==='driver',el=$('gDetail');
+    el.className='fb dtl'+(c.ok?' good':'');
+    el.innerHTML=`<b class=dt>${c.title}</b><div class=dl><b class=k>ดูอะไร</b>${d.l}</div><div class=dl><b class=k>ทำไมสำคัญ</b>${d.w}</div><div class=dl><b class=k>วิธีฝึกแก้</b>${d.f[dr?0:1]}</div>`;
+  }
+  const seekTo=t=>new Promise(r=>{if(Math.abs(v.currentTime-t)<1e-3)return r();const h=()=>{v.removeEventListener('seeked',h);r()};v.addEventListener('seeked',h);v.currentTime=t});
+  async function gApproach(c,prev,tok){
+    v.pause();
+    if(prev==null||!$('gSlow').checked){await seekTo(c.t);return}
+    $('gCall').style.visibility='hidden';
+    await seekTo(Math.max(prev,c.t-1.0));
+    v.playbackRate=Math.min(+$('speed').value||.25,.5);
+    try{await v.play()}catch(e){}
+    await new Promise(r=>{const f=()=>{if(tok!==G.tok||v.currentTime>=c.t-.02||v.ended||v.paused)r();else requestAnimationFrame(f)};f()});
+    v.pause();
+    if(tok===G.tok)await seekTo(c.t);
+  }
+
+  /* AI ball flight, shot by shot */
+  const SH={list:[],i:0};
+  const FLT={driver:{la:12,ap:33,roll:20},long:{la:16,ap:30,roll:10},mid:{la:20,ap:28,roll:5},short:{la:24,ap:26,roll:2}};
+  const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const num=(id,d)=>{const x=$(id).value;return x===''?d:+x};
+  function shapeName(s,cv){
+    const a=Math.abs(cv),cu=a<1.5?'':(cv>0?(a>=5?'สไลซ์':'เฟด'):(a>=5?'ฮุก':'ดรอว์')),st=Math.abs(s)<1.5?'':(s>0?'พุช':'พูล');
+    return (st&&cu)?st+'-'+cu:(st||cu||'ตรง');
+  }
+  function localShot(p){
+    const ci=CI[p.club],f=FLT[p.club],s=ci.k*p.face+(1-ci.k)*p.path,cv=p.face-p.path;
+    const carry=p.speed*ci.sm*ci.cf*(1+(p.aoa-p.aoaRef)*.004);
+    return {carry,total:carry+f.roll,start:s,land:carry*Math.sin(s*Math.PI/180)+carry*cv*.017,apex:f.ap*3,launch:f.la,shape:shapeName(s,cv),summary:'',tips:[]};
+  }
+  function mergeAI(b,r){
+    const n=(x,lo,hi,d)=>(typeof x==='number'&&isFinite(x)&&x>=lo&&x<=hi)?x:d,o={...b};
+    o.carry=n(r.carry_yd,20,400,b.carry);o.total=n(r.total_yd,o.carry,450,Math.max(b.total,o.carry+2));
+    o.start=n(r.start_deg,-30,30,b.start);o.land=n(r.landing_offset_yd,-120,120,b.land);
+    o.apex=n(r.apex_ft,10,200,b.apex);o.launch=n(r.launch_deg,3,40,b.launch);
+    if(typeof r.shape==='string'&&r.shape)o.shape=r.shape.slice(0,40);
+    if(typeof r.summary==='string')o.summary=r.summary.slice(0,500);
+    if(Array.isArray(r.tips))o.tips=r.tips.filter(x=>typeof x==='string').slice(0,3).map(x=>x.slice(0,200));
+    return o;
+  }
+  async function aiShot(p,ratio,b){
+    const sm=await (window.claude&&window.claude.use?window.claude.use('sample'):null);
+    if(!sm)return null;
+    const prompt=`คุณเป็นโปรกอล์ฟและนักฟิสิกส์วิถีลูกกอล์ฟ คำนวณวิถีลูกของนักกอล์ฟมือขวาจากข้อมูลสวิงด้านล่าง ใช้หลัก D-plane (ทิศเริ่มต้นของลูกขึ้นกับหน้าไม้เป็นหลัก การโค้งขึ้นกับผลต่างหน้าไม้กับ path) ให้ตัวเลขสมจริงสำหรับนักกอล์ฟสมัครเล่น\nไม้: ${CI[p.club].n}\nสปีดหัวไม้: ${p.speed} mph\nFace angle: ${p.face} องศา (บวก = เปิดไปทางขวาของเป้า)\nClub path: ${p.path} องศา (บวก = in-to-out)\nAttack angle: ${p.aoa} องศา (บวก = ตีขึ้น)\nอัตราส่วน tempo backswing:downswing: ${ratio?ratio.toFixed(2):'ไม่ทราบ'}\nค่าประมาณจากสูตรเพื่อใช้อ้างอิง: carry ${b.carry.toFixed(0)} หลา, ทิศเริ่มต้น ${b.start.toFixed(1)} องศา, ปลายทางห่างเส้นเป้า ${b.land.toFixed(0)} หลา\nตอบเป็น JSON เท่านั้น ไม่มีข้อความอื่น: {"carry_yd":ตัวเลข,"total_yd":ตัวเลข,"start_deg":ตัวเลข(บวก=ขวา),"landing_offset_yd":ตัวเลข(บวก=ขวาของเส้นเป้า),"apex_ft":ตัวเลข,"launch_deg":ตัวเลข,"shape":"ชื่อวิถีเป็นภาษาไทย","summary":"อธิบาย 2 ประโยค ภาษาไทยเข้าใจง่าย บอกว่าทำไมลูกไปทางนี้","tips":["คำแนะนำสั้น 3 ข้อ ภาษาไทย"]}`;
+    return await sm.json(prompt);
+  }
+  function scl(r){return Math.max(120,Math.ceil((r.total+20)/50)*50)}
+  function flightSVG(r){
+    const ox=150,oy=338,top=30,mx=scl(r),k=(oy-top)/mx,X=l=>ox+Math.max(-138,Math.min(138,l*k)),Y=d=>oy-d*k,s=r.start*Math.PI/180;
+    const ex=X(r.land),ey=Y(r.carry),L=r.carry*.55,cx=X(Math.sin(s)*L),cy=Y(Math.cos(s)*L);
+    const dx=ex-cx,dy=ey-cy,ln=Math.hypot(dx,dy)||1,rl=(r.total-r.carry)*k,fw=22*k;
+    let g=`<rect width='300' height='360' fill='#1B4A36'/>`;
+    for(let d=0,i=0;d<mx;d+=25,i++){const e=Math.min(d+25,mx);g+=`<rect x='${ox-fw}' y='${Y(e)}' width='${fw*2}' height='${(e-d)*k+.5}' fill='${i%2?'#2F7B55':'#2A6F4C'}'/>`}
+    for(let d=50;d<=mx;d+=50)g+=`<line x1='6' x2='294' y1='${Y(d)}' y2='${Y(d)}' stroke='#fff' stroke-opacity='.22'/><text x='8' y='${Y(d)-4}' fill='#fff' fill-opacity='.75' font-size='10' font-family='Kanit,sans-serif'>${d}</text>`;
+    g+=`<line x1='${ox}' x2='${ox}' y1='${top}' y2='${oy}' stroke='#fff' stroke-opacity='.5' stroke-dasharray='5 5'/><path d='M${ox},${top} V8' stroke='#fff' stroke-width='1.5'/><path d='M${ox},8 L${ox+16},13 L${ox},18Z' fill='#E4503C'/>`;
+    g+=`<path d='M${ox},${oy} Q${cx},${cy} ${ex},${ey}' fill='none' stroke='#06150E' stroke-opacity='.4' stroke-width='6.5' stroke-linecap='round'/><path d='M${ox},${oy} Q${cx},${cy} ${ex},${ey}' fill='none' stroke='#F2C230' stroke-width='3.2' stroke-linecap='round'/>`;
+    g+=`<line x1='${ex}' y1='${ey}' x2='${ex+dx/ln*rl}' y2='${ey+dy/ln*rl}' stroke='#F2C230' stroke-width='2' stroke-dasharray='2 5' stroke-linecap='round'/>`;
+    const lx=ex>190?ex-82:ex+12;
+    g+=`<circle cx='${ex}' cy='${ey}' r='7' fill='#F2C230' stroke='#fff' stroke-width='2.5'/><rect x='${lx}' y='${ey-12}' width='70' height='24' rx='12' fill='#fff'/><text x='${lx+35}' y='${ey+4.5}' text-anchor='middle' fill='#13271D' font-size='12' font-weight='600' font-family='Kanit,sans-serif'>${r.carry.toFixed(0)} หลา</text>`;
+    g+=`<circle cx='${ox}' cy='${oy}' r='5' fill='#fff' stroke='#13271D' stroke-width='1.5'/>`;
+    return `<svg class=shsvg viewBox='0 0 300 360' role='img' aria-label='วิถีลูกมองจากด้านบน'>${g}</svg>`;
+  }
+  function sideSVG(r){
+    const mx=scl(r),pw=260/mx,gx=20,gy=112,cp=r.carry*pw,ap=Math.min(88,r.apex/3*pw*1.8),ex=gx+cp,rx=gx+Math.min(270,r.total*pw);
+    const path=`M${gx},${gy} Q${gx+cp/2},${gy-ap*2} ${ex},${gy}`;
+    return `<svg class=shsvg viewBox='0 0 300 140' role='img' aria-label='วิถีลูกมองจากด้านข้าง'><defs><linearGradient id='sk' x1='0' x2='0' y1='0' y2='1'><stop offset='0' stop-color='#0C3224'/><stop offset='1' stop-color='#1F6247'/></linearGradient></defs><rect width='300' height='140' fill='url(#sk)'/><rect y='${gy}' width='300' height='${140-gy}' fill='#2A6F4C'/><path d='${path}' fill='none' stroke='#06150E' stroke-opacity='.4' stroke-width='6.5' stroke-linecap='round'/><path d='${path}' fill='none' stroke='#F2C230' stroke-width='3.2' stroke-linecap='round'/><line x1='${ex}' y1='${gy}' x2='${rx}' y2='${gy}' stroke='#F2C230' stroke-width='2' stroke-dasharray='2 5' stroke-linecap='round'/><circle cx='${gx+cp/2}' cy='${gy-ap}' r='4.5' fill='#fff'/><text x='${gx+cp/2+9}' y='${gy-ap-6}' fill='#fff' font-size='11' font-weight='500' font-family='Kanit,sans-serif'>สูง ${r.apex.toFixed(0)} ฟุต</text><text x='10' y='132' fill='#fff' fill-opacity='.7' font-size='10' font-family='Kanit,sans-serif'>มุมลอย ${r.launch.toFixed(0)}° · มองจากด้านข้าง</text></svg>`;
+  }
+  function renderShot(){
+    const n=SH.list.length,r=SH.list[SH.i];
+    $('shNo').textContent=n?`ชอต ${SH.i+1} / ${n} · ${CI[r.p.club].n}`:'ยังไม่มีชอต';
+    if(!n){$('shView').innerHTML=`<div class=empty>กดปุ่มด้านบน แล้ว AI จะแสดงระยะและวิถีลูกที่นี่</div>`;return}
+    const dir=Math.abs(r.start)<1?'ตรงเป้า':(r.start>0?'ขวา ':'ซ้าย ')+Math.abs(r.start).toFixed(1)+'°';
+    const off=Math.abs(r.land)<2?'ตรงเส้นเป้า':(r.land>0?'ขวา ':'ซ้าย ')+Math.abs(r.land).toFixed(0)+' หลา';
+    const sum=r.summary||`วิถี${r.shape}: ลูกเริ่มออก${dir} และตกห่างเส้นเป้า${off}`;
+    const tips=r.tips.length?'<ul class=adv>'+r.tips.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>':'';
+    $('shView').innerHTML=`<div class=hero><div class=hv><span class=n>${r.carry.toFixed(0)}</span><span class=u>หลา</span></div><div class=hl>ระยะลอย · รวมกลิ้งประมาณ ${r.total.toFixed(0)} หลา</div><div class=pills><span class='pill hl2'>${esc(r.shape)}</span><span class=pill>เริ่มออก ${dir}</span><span class=pill>ตก${off}</span><span class=pill>สูง ${r.apex.toFixed(0)} ฟุต</span></div></div>`+flightSVG(r)+sideSVG(r)+`<div class='fb good note'>${esc(sum)}${tips}<div class=hint>คำนวณโดย ${r.src}${r.conf?' ('+esc(r.conf)+')':''} · สปีด ${r.p.speed} mph, Face ${r.p.face}°, Path ${r.p.path}°</div></div>`;
+  }
+  $('shPrev').onclick=()=>{if(SH.i>0){SH.i--;renderShot()}};
+  $('shNext').onclick=()=>{if(SH.i<SH.list.length-1){SH.i++;renderShot()}};
+  $('shDel').onclick=()=>{if(SH.list.length){SH.list.splice(SH.i,1);SH.i=Math.max(0,SH.i-1);renderShot()}};
+  $('shGo').onclick=async()=>{
+    const btn=$('shGo'),st=$('shSt'),club=$('club').value,ci=CI[club],ar=club==='driver'?2:-4;
+    const p={club,speed:num('shSp',ci.ref),face:num('face',0),path:num('path',0),aoa:num('aoa',ar),aoaRef:ar};
+    const [a,t,i]=marks,ratio=(a!=null&&t!=null&&i!=null&&t>a&&i>t)?(t-a)/(i-t):null;
+    const base=localShot(p);let res=base,src='แบบจำลองคำนวณ';
+    btn.disabled=true;st.textContent='AI กำลังคำนวณวิถีลูก...';
+    try{const r=await aiShot(p,ratio,base);if(r&&typeof r==='object'){res=mergeAI(base,r);src='AI (Claude)';st.textContent='เสร็จแล้ว'}else st.textContent='AI ยังไม่พร้อม ใช้แบบจำลองคำนวณแทน'}
+    catch(e){st.textContent='AI ใช้งานไม่ได้ในขณะนี้ ใช้แบบจำลองคำนวณแทน'}
+    res.p=p;res.src=src;res.tips=res.tips||[];
+    SH.list.push(res);if(SH.list.length>10)SH.list.shift();
+    SH.i=SH.list.length-1;renderShot();btn.disabled=false;
+  };
+  async function grab(t){
+    await seekTo(t);
+    const W=Math.min(640,v.videoWidth),H=Math.round(W*v.videoHeight/v.videoWidth),cv=document.createElement('canvas');
+    cv.width=W;cv.height=H;cv.getContext('2d').drawImage(v,0,0,W,H);
+    return new Promise(r=>cv.toBlob(b=>r(b),'image/jpeg',.8));
+  }
+  $('shVid').onclick=async()=>{
+    const btn=$('shVid'),st=$('shSt');
+    const sm=await (window.claude&&window.claude.use?window.claude.use('sample'):null);
+    if(!sm){st.textContent='AI ยังไม่พร้อมในมุมมองนี้';return}
+    let lim=null;try{lim=await sm.limits()}catch(e){}
+    if(!lim||!lim.images){st.textContent='มุมมองนี้ส่งภาพให้ AI ไม่ได้ ใช้ปุ่มคำนวณจากตัวเลขแทน';return}
+    if(!v.duration){st.textContent='อัพโหลดวีดีโอก่อน';return}
+    btn.disabled=true;v.pause();
+    try{
+      if(marks.some(m=>m==null))await autoAnalyze();
+      if(marks.some(m=>m==null)){st.textContent='หาจังหวะสวิงไม่ได้ ลองมาร์คเองก่อน';btn.disabled=false;return}
+      st.textContent='กำลังเก็บภาพจากวีดีโอ...';
+      const blobs=[];
+      for(const t of marks.slice(0,lim.images.maxCount)){const b=await grab(t);if(b)blobs.push(b)}
+      const club=$('club').value,ci=CI[club],ar=club==='driver'?2:-4,[a,t,i]=marks;
+      const ratio=(t>a&&i>t)?(t-a)/(i-t):null,sp=$('shSp').value===''?null:+$('shSp').value;
+      st.textContent='AI กำลังดูภาพและคาดการณ์วิถีลูก...';
+      const prompt=`คุณเป็นโปรกอล์ฟและนักวิเคราะห์สวิง ภาพที่แนบเป็นเฟรมจากวิดีโอสวิง 1 ครั้งของนักกอล์ฟมือขวา เรียงตามลำดับ: Address, Top, Impact, Finish\nไม้ที่ใช้: ${ci.n}\nสปีดหัวไม้ที่วัดได้: ${sp?sp+' mph':'ไม่ทราบ (ให้ประเมินจากภาพและค่าเฉลี่ยสมัครเล่น)'}\nอัตราส่วน tempo backswing:downswing: ${ratio?ratio.toFixed(2):'ไม่ทราบ'}\nกฎ: ประเมินจากภาพ 2D ได้แค่ประมาณ ให้ตัวเลขสมจริงสำหรับนักกอล์ฟสมัครเล่น ถ้ามุมกล้องทำให้ประเมินไม่ได้ ให้ใช้ค่าใกล้ 0 และบอกใน confidence_note หากความมั่นใจต่ำ\nขั้นแรกประเมิน face angle ตอน impact, club path, attack angle และสปีดหัวไม้ จากนั้นคำนวณวิถีลูกด้วยหลัก D-plane\nตอบเป็น JSON เท่านั้น: {"face_deg":ตัวเลข(บวก=เปิดขวา),"path_deg":ตัวเลข(บวก=in-to-out),"attack_deg":ตัวเลข,"club_speed_mph":ตัวเลข,"carry_yd":ตัวเลข,"total_yd":ตัวเลข,"start_deg":ตัวเลข(บวก=ขวา),"landing_offset_yd":ตัวเลข(บวก=ขวาของเส้นเป้า),"apex_ft":ตัวเลข,"launch_deg":ตัวเลข,"shape":"ชื่อวิถีภาษาไทย","summary":"อธิบาย 2 ประโยค ภาษาไทยง่าย บอกว่าทำไมลูกไปทางนี้ อ้างสิ่งที่เห็นในภาพ","tips":["คำแนะนำสั้น 3 ข้อ ภาษาไทย"],"confidence_note":"ความมั่นใจ (ต่ำ/กลาง/สูง) และข้อจำกัดจากมุมกล้อง"}`;
+      const r=await sm.json(prompt,{images:blobs});
+      if(!r||typeof r!=='object'){st.textContent='AI ตอบกลับไม่ถูกรูปแบบ ลองใหม่อีกครั้ง';btn.disabled=false;return}
+      const n=(x,lo,hi,d)=>(typeof x==='number'&&isFinite(x)&&x>=lo&&x<=hi)?x:d;
+      const p={club,speed:sp||n(r.club_speed_mph,40,140,ci.ref),face:n(r.face_deg,-15,15,0),path:n(r.path_deg,-15,15,0),aoa:n(r.attack_deg,-12,12,ar),aoaRef:ar};
+      $('face').value=p.face;$('path').value=p.path;$('aoa').value=p.aoa;if(!sp)$('shSp').value=p.speed.toFixed(0);
+      ballCalc();
+      const res=mergeAI(localShot(p),r);
+      res.p=p;res.src='AI ดูวิดีโอ';res.tips=res.tips||[];
+      if(typeof r.confidence_note==='string')res.conf=r.confidence_note.slice(0,120);
+      SH.list.push(res);if(SH.list.length>10)SH.list.shift();
+      SH.i=SH.list.length-1;renderShot();
+      st.textContent='AI ประเมิน Face '+p.face+'°, Path '+p.path+'° จากภาพ (แก้ไขค่าได้)';
+    }catch(e){
+      st.textContent=(e&&e.code==='not_granted')?'ต้องอนุญาตให้หน้านี้ใช้ Claude ก่อน AI จะคาดการณ์ได้':'AI ใช้งานไม่ได้ในขณะนี้ ลองใหม่หรือใช้ปุ่มคำนวณจากตัวเลข';
+    }
+    btn.disabled=false;
+  };
+  renderShot();
+
+  // auto analyze (motion-energy based)
+  async function autoAnalyze(){
+    if(!v.duration)return;
+    const btn=$('auto'),st=$('autoSt');btn.disabled=true;v.pause();
+    const W=96,H=Math.max(2,Math.round(96*v.videoHeight/v.videoWidth));
+    const oc=document.createElement('canvas');oc.width=W;oc.height=H;
+    const o=oc.getContext('2d',{willReadFrequently:true});
+    const dt=Math.max(1/fps(),v.duration/360);
+    const times=[],en=[];let prev=null;
+    try{
+      for(let t=0;t<v.duration;t+=dt){
+        if(Math.abs(v.currentTime-t)>1e-4){
+          await new Promise(res=>{const h=()=>{v.removeEventListener('seeked',h);res()};v.addEventListener('seeked',h);v.currentTime=t});
+        }
+        o.drawImage(v,0,0,W,H);
+        const d=o.getImageData(0,0,W,H).data;
+        const g=new Float32Array(W*H);
+        for(let i=0;i<g.length;i++)g[i]=(d[i*4]+d[i*4+1]+d[i*4+2])/3;
+        if(prev){let s=0;for(let i=0;i<g.length;i++)s+=Math.abs(g[i]-prev[i]);times.push(t);en.push(s/g.length)}
+        prev=g;
+        st.textContent='กำลังวิเคราะห์... '+Math.round(t/v.duration*100)+'%';
+      }
+    }catch(e){st.textContent='วิเคราะห์ไม่สำเร็จ ลองใหม่อีกครั้ง';btn.disabled=false;return}
+    const n=en.length;
+    const sm=en.map((_,i)=>{let s=0,k=0;for(let j=i-1;j<=i+1;j++)if(j>=0&&j<n){s+=en[j];k++}return s/k});
+    let P=0;sm.forEach((x,i)=>{if(x>sm[P])P=i});
+    const base=[...sm].sort((a,b)=>a-b)[Math.floor(n/2)],pk=sm[P];
+    let O=0;for(let i=0;i<P;i++){if(sm[i]>base+0.15*(pk-base)){O=i;break}}
+    if(P-O<4){st.textContent='จับจังหวะไม่ได้ ลองวีดีโอที่ถ่ายด้วยกล้องนิ่งและมีสวิงชัดเจน หรือมาร์คเอง';btn.disabled=false;return}
+    const lo=O+Math.floor((P-O)*0.4),hi=Math.max(lo,P-1);
+    let T=lo;for(let i=lo;i<=hi;i++)if(sm[i]<sm[T])T=i;
+    let F=n-1;for(let i=P+1;i<n;i++){if(sm[i]<base+0.2*(pk-base)){F=i;break}}
+    marks=[times[O],times[T],times[P],times[F]];
+    refreshMarks();
+    v.currentTime=times[P];
+    st.textContent='เสร็จแล้ว (ค่าประมาณ) ตรวจและปรับมาร์คได้';
+    btn.disabled=false;
+  }
+  $('auto').onclick=autoAnalyze;
+
+  // phases
+  document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{
+    marks[+b.dataset.p]=v.currentTime;refreshMarks();
+  });
+  $('resetP').onclick=()=>{marks=[null,null,null,null];refreshMarks()};
+  function refreshMarks(){
+    advice();
+    marks.forEach((m,i)=>{const e=$('t'+i);e.textContent=m==null?'–':m.toFixed(3)+'s';e.classList.toggle('set',m!=null)});
+    const [a,t,i]=marks,fb=$('fb');
+    if(a==null||t==null||i==null){
+      $('mBack').textContent=$('mDown').textContent=$('mRatio').textContent='–';
+      fb.className='fb';fb.textContent='มาร์ค 3 จุดแรกเพื่อดูผล Tempo';return;
+    }
+    if(!(a<t&&t<i)){fb.className='fb';fb.textContent='ลำดับเวลาไม่ถูกต้อง: ต้องเป็น Address < Top < Impact';
+      $('mBack').textContent=$('mDown').textContent=$('mRatio').textContent='–';return}
+    const back=t-a,down=i-t,r=back/down;
+    $('mBack').textContent=back.toFixed(3)+' s';
+    $('mDown').textContent=down.toFixed(3)+' s';
+    $('mRatio').textContent=r.toFixed(2)+' : 1';
+    let msg,good=false;
+    if(r<2.4)msg='Backswing สั้นหรือ Downswing ช้าเมื่อเทียบกัน (จังหวะค่อนข้างเร่ง) ลองเพิ่มความนุ่มนวลช่วงแบ็กสวิง ไม่ต้องรีบเปลี่ยนทิศ';
+    else if(r<=3.6){msg='Tempo อยู่ในช่วงใกล้เคียง 3:1 จังหวะสมดุลดี';good=true}
+    else msg='Backswing ช้าหรือยาวมากเมื่อเทียบกับ Downswing ลองกระชับจังหวะเริ่มต้นให้ลื่นไหลขึ้น หรือตรวจว่ามาร์คจุดตรงเฟรมจริงหรือไม่';
+    fb.className='fb'+(good?' good':'');fb.textContent=msg;
+  }
+})();
+</script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  window.showTab=function(n){
+    document.querySelectorAll('.pane').forEach((p,i)=>p.classList.toggle('act',i===n));
+    document.querySelectorAll('#tabs button').forEach((b,i)=>b.classList.toggle('act',i===n));
+  };
+  document.querySelectorAll('#tabs button').forEach((b,i)=>b.onclick=()=>{showTab(i);window.scrollTo({top:0,behavior:'smooth'})});
+  const sel=$('speed');
+  const sync=()=>document.querySelectorAll('#spChips button').forEach(b=>b.classList.toggle('on',b.dataset.sp===sel.value));
+  document.querySelectorAll('#spChips button').forEach(b=>b.onclick=()=>{sel.value=b.dataset.sp;sel.dispatchEvent(new Event('change'));sync()});
+  sel.addEventListener('change',sync);sync();
+  const club=$('club');
+  const csync=()=>document.querySelectorAll('#clubSeg button').forEach(b=>b.classList.toggle('on',b.dataset.club===club.value));
+  document.querySelectorAll('#clubSeg button').forEach(b=>b.onclick=()=>{club.value=b.dataset.club;club.dispatchEvent(new Event('change'));csync()});
+  club.addEventListener('change',csync);csync();
+  const bar=()=>{
+    const b=parseFloat($('mBack').textContent),d=parseFloat($('mDown').textContent);
+    $('tbB').style.flexGrow=isFinite(b)&&isFinite(d)?b:0;
+    $('tbD').style.flexGrow=isFinite(b)&&isFinite(d)?d:0;
+  };
+  new MutationObserver(bar).observe($('mRatio'),{childList:true,characterData:true,subtree:true});
+})();
+</script>
+</body>
+</html>
